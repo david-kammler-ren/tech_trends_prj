@@ -1,4 +1,6 @@
 import sqlite3
+import logging
+import logging.config
 
 from flask import Flask, jsonify, json, render_template, request, url_for, redirect, flash
 from werkzeug.exceptions import abort
@@ -37,7 +39,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your secret key'
 
 
-# Define the main route of the web application 
+# Define the main route of the web application
 @app.route('/')
 def index():
     connection = get_db_connection()
@@ -46,24 +48,28 @@ def index():
     return render_template('index.html', posts=posts)
 
 
-# Define how each individual article is rendered 
+# Define how each individual article is rendered
 # If the post ID is not found a 404 page is shown
 @app.route('/<int:post_id>')
 def post(post_id):
     post = get_post(post_id)
     if post is None:
-      return render_template('404.html'), 404
+        app.logger.info(f'Attempt to access non-existing article with ID {post_id}! Returning with 404 error.')
+        return render_template('404.html'), 404
     else:
-      return render_template('post.html', post=post)
+        title = post["title"]
+        app.logger.info(f'Article "{title}" retrieved!')
+        return render_template('post.html', post=post)
 
 
 # Define the About Us page
 @app.route('/about')
 def about():
+    app.logger.info('"Abbout Us" page retrieved!')
     return render_template('about.html')
 
 
-# Define the post creation functionality 
+# Define the post creation functionality
 @app.route('/create', methods=('GET', 'POST'))
 def create():
     if request.method == 'POST':
@@ -78,7 +84,7 @@ def create():
                          (title, content))
             connection.commit()
             close_db_connection(connection)
-
+            app.logger.info(f'Article "{title}" created!')
             return redirect(url_for('index'))
 
     return render_template('create.html')
@@ -95,13 +101,16 @@ def healthz():
     return response
 
 
+# Providing metrics on
+# - concurrently active DB connections at the time
+# - count of the posts in the DB
 @app.route('/metrics')
 def metrics():
     global db_connection_cnt_gbl
     connection = get_db_connection()
     post_cbt = connection.execute('SELECT COUNT(*) FROM posts').fetchone()[0]
     close_db_connection(connection)
-    
+
     response = app.response_class(
             response=json.dumps(
                 {
@@ -116,4 +125,24 @@ def metrics():
 
 # start the application on port 3111
 if __name__ == "__main__":
-   app.run(host='0.0.0.0', port='3111')
+    LOGGING_CONFIG = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "standard": {"format": r"[{levelname:<8s}] [{asctime}] [{name}:{lineno:>4}]    {message}",
+                        'datefmt': r'%Y-%m-%d %H:%M:%S %z',
+                        'style': '{'},
+        },
+        "handlers": {
+            "default": {
+                "level": "DEBUG",
+                "formatter": "standard",
+                "class": "logging.StreamHandler",
+                "stream": "ext://sys.stdout",  # Default is stderr
+            }
+        }
+    }
+    #logging.config.dictConfig(LOGGING_CONFIG)
+    logging.basicConfig(format=r"[{levelname:<8s}] [{asctime}] [{name}:{lineno:>4}]    {message}",
+                        datefmt=r'%Y-%m-%d %H:%M:%S %z', style='{', level=logging.DEBUG)
+    app.run(host='0.0.0.0', port=3111)

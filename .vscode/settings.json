@@ -1,0 +1,41 @@
+{
+    "cSpell.words": [
+        "healthz"
+    ],
+    "cmake.configureOnOpen": true,
+
+    // trimming of whitespaces
+    "editor.trimAutoWhitespace": true,
+    "files.trimTrailingWhitespace": true,
+    "[markdown]": {
+        "files.trimTrailingWhitespace": false,
+        "editor.trimAutoWhitespace": false,
+    },
+
+    // customize tab size
+    "editor.detectIndentation": false,
+    "[css][sass][javascript][html][django-html][typescriptreact]": {
+        "editor.tabSize": 2,
+    },
+    "[bat][json][python][shellscript][markdown]": {
+        "editor.tabSize": 4,
+    },
+
+    // enable pylance basic checks for dataflow and type checks
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.inlayHints.functionReturnTypes": true,
+    "python.analysis.inlayHints.pytestParameters": true,
+
+    // add rulers in the editor with respect to the maximum code width as defined in the coding guideline
+    "[python]": {
+        "editor.rulers": [
+            120,
+            {
+                "column": 200,
+                "color": "#ff000099"
+            },
+        ],
+        "editor.defaultFormatter": "charliermarsh.ruff",
+    },
+
+}
