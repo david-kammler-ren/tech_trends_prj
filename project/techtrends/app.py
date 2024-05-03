@@ -1,6 +1,5 @@
 import sqlite3
 import logging
-import logging.config
 
 from flask import Flask, jsonify, json, render_template, request, url_for, redirect, flash
 from werkzeug.exceptions import abort
