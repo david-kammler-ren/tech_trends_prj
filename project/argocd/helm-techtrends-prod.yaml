@@ -13,5 +13,5 @@ spec:
       valueFiles:
       - values-prod.yaml
     path: project/helm
-    repoURL: https://github.com/david-kammler-ren/tech_trends_prj
+    repoURL: https://github.com/david-kammler-ren/tech_trends_prj.git
     targetRevision: HEAD
