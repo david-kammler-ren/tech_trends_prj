@@ -92,11 +92,31 @@ def create():
 # Health check returning simple HTTP 200 JSON response
 @app.route('/healthz')
 def healthz():
-    response = app.response_class(
-            response=json.dumps({"result": "OK - healthy"}),
-            status=200,
-            mimetype='application/json'
-    )
+    # try to access the database
+    db_okay = True
+    # check that DB can be accessed (exists)
+    try:
+        connection = get_db_connection()
+    except sqlite3.OperationalError:
+        db_okay = False
+    else:
+        # check that posts table is available
+        list_of_tables = connection.execute(
+                    """SELECT name FROM sqlite_master WHERE type='table' AND name='posts'; """).fetchall()
+        if not list_of_tables:
+            db_okay = False
+    if db_okay:
+        response = app.response_class(
+                response=json.dumps({"result": "OK - healthy"}),
+                status=200,
+                mimetype='application/json'
+        )
+    else:
+        response = app.response_class(
+                response=json.dumps({"result": "ERROR - unhealthy"}),
+                status=500,
+                mimetype='application/json'
+        )
     return response
 
 
